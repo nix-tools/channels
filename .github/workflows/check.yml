@@ -1,0 +1,16 @@
+# Per-push checks: formatting, dead code and every flake output, which for this repo is the
+# publish script and the shell it ships in.
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/nix
+      - run: nix flake check -L

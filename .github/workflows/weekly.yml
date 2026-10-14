@@ -1,0 +1,60 @@
+# Cut this week's channel. Monday 05:00 UTC, which is far enough into the ISO week that a
+# manual re-run the same day still lands on the same tag.
+#
+# Nothing here decides anything: `nix run .#publish` resolves the upstream release, checks
+# the tarball and creates the release, and this job exists to install Nix and to commit the
+# index entry the script leaves behind.
+name: weekly
+
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+    inputs:
+      week:
+        description: ISO week to publish as, e.g. 2026-W42. Defaults to the current week.
+        type: string
+      force:
+        description: Replace an existing release for that week, tag included.
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/nix
+
+      - name: nix run .#publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WEEK: ${{ inputs.week }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          args=()
+          if [[ -n $WEEK ]]; then
+            args+=(--week "$WEEK")
+          fi
+          if [[ $FORCE == true ]]; then
+            args+=(--force)
+          fi
+          nix run .#publish -- "${args[@]}"
+
+      - name: Commit the index entry
+        run: |
+          if git diff --quiet channels/index.json; then
+            echo "index unchanged, nothing to commit"
+            exit 0
+          fi
+          week=$(jq -r '.weeks[-1].week' channels/index.json)
+          git config user.name "Simon Shine"
+          git config user.email "simon@simonshine.dk"
+          git commit -m "chore(channels): publish $week" channels/index.json
+          git push

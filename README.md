@@ -29,6 +29,13 @@ package builds out of the binary cache. On failure the previous week stands.
 release it came from, the revision, the narHash and the size. The releases are a cache of
 it rather than the other way around, so a bad publish is a revert and a re-upload.
 
+CI does the same thing on a cron, and `workflow_dispatch` runs it on demand:
+
+```
+gh workflow run weekly.yml
+gh workflow run weekly.yml -f week=2026-W42 -f force=true
+```
+
 ## Not here yet
 
 - `channels.nix.tools/nixpkgs-2026-W42.tar.zst`, a static 302 to the release asset.
