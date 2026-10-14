@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "upstream": "nixos-unstable",
+  "asset": "nixpkgs.tar.zst",
+  "weeks": []
+}

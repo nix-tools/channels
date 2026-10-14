@@ -18,6 +18,10 @@ lint:
 check:
     nix flake check
 
+# Build and check this week's tarball without publishing it
+dry-run:
+    nix run .#publish -- --dry-run
+
 # Run all CI checks locally
 ci: fmt-check lint check
     @echo "All CI checks passed!"
